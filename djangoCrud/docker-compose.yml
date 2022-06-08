@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres
+    container_name: db
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DB_HOST=localhost
+    # command: bash -c "python manage.py makemigrations"  
+    ports: 
+      - 5432:5432
+    networks:
+      - default
+  
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: test@test.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+  web:
+    build: .
+    command: bash -c "python manage.py makemigrations && 
+                      python manage.py migrate && 
+                      python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - default
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - DB_HOST="0.0.0.0"
+    depends_on:
+      - db
+
+        
+volumes:
+  pgadmin-data:
+  postgres:
